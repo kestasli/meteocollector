@@ -44,10 +44,11 @@ def formatMQData(temp, windspd, windir, station_id, station_name):
    return json.dumps(message, ensure_ascii=False)
 
 def convertDirection(direction):
-   directionMap = {'Šiaurės': 0, 'Šiaurės rytų':45, 'Rytų':90,                 'Pietryčių': 135, 'Pietų': 180, 'Pietvakarių': 225,                 'Vakarų': 270, 'Šiaurės vakarų': 315}
+   directionMap = {'Šiaurės': 0, 'Šiaurės rytų':45, 'Rytų':90, 'Pietryčių': 135, 'Pietų': 180, 'Pietvakarių': 225, 'Vakarų': 270, 'Šiaurės vakarų': 315}
    try:
       degrees = directionMap[direction]
    except:
+      # Encode direction if no match found
       degrees = -1
    return degrees
 
