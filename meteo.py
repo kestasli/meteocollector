@@ -59,15 +59,18 @@ try:
     req = request.Request(url_vu)
     req.add_header('Referer', 'https://www.hkk.gf.vu.lt/vu_ms/')
     session = request.urlopen(req)
-    #print(session.info())
     data = str(session.read().decode(encoding='UTF-8'))
     session.close()
+
     data = data[4:-3]
     js_data_vu = json.loads(data)
-    print(js_data_vu['zeno_AT_5s_C'], js_data_vu['zeno_Dir_5s'])
-    stationData = formatMQData(js_data_vu['zeno_AT_5s_C'], js_data_vu['zeno_Spd_5s_Kt'], js_data_vu['zeno_Dir_5s'], '0', 'VU Meteo Stotis')
+
+    stationData = formatMQData(js_data_vu['zeno_AT_5s_C'], js_data_vu['zeno_Spd_5s_Kt'], int(js_data_vu['zeno_Dir_5s']), '0', 'VU Meteo Stotis')
     stationsList.append(fmtMessage(root_topic + '/' + '0', stationData))
     print(stationData)
+
+    with open('stationdata/' + '0' + '.json', "w") as outfile:
+        outfile.write(stationData)
 
 except error.URLError as err:
     print(err)
