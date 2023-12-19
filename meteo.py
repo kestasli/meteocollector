@@ -1,5 +1,5 @@
 #!/Library/Frameworks/Python.framework/Versions/3.6/bin/python3
-
+import time
 from decouple import config
 import json
 import os
@@ -10,10 +10,13 @@ import pprint as pp
 #from paho import mqtt
 from math import exp
 
+start_time = time.time()
+
 scriptdir = '/Users/kestasli/Documents/pythonfun/MQTT_meteo/'
 root_topic = 'weather'
 mqtt_server = 'e4444600f9834ebe8e6502c4dbccbf68.s2.eu.hivemq.cloud'
 user_pass = {'username': config('MQUSER'), 'password': config('MQPASS')}
+publishTopics = ['0000', '0310', '1187', '5351']
 
 def unifyID(name):
     maxlen = 4
@@ -98,3 +101,5 @@ for station in stationsList:
    print(station['payload'])
 
 print(len(stationsList))
+
+print("--- %s seconds ---" % (time.time() - start_time))
