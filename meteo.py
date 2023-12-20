@@ -12,7 +12,8 @@ from math import exp
 
 start_time = time.time()
 
-scriptdir = '/Users/kestasli/Documents/pythonfun/MQTT_meteo/'
+#scriptdir = '/Users/kestasli/Documents/pythonfun/MQTT_meteo/'
+scriptdir = './'
 root_topic = 'weather'
 mqtt_server = 'e4444600f9834ebe8e6502c4dbccbf68.s2.eu.hivemq.cloud'
 user_pass = {'username': config('MQUSER'), 'password': config('MQPASS')}
@@ -36,8 +37,10 @@ def getRH(T, TD):
   return RH
 
 def formatMQData(temp, windspd, windir, station_id, station_name):
+   # Negative numbers will be used as indicator that particular sensor is not gathering data
    if windspd == None: windspd = -1
    if temp == None: temp = -99
+   if windir == None: windir = -1
    message = {"temp": float(temp), "windspd": float(windspd), "winddir": windir, "station_id": station_id, "station_name": station_name}
    return json.dumps(message, ensure_ascii=False)
 
