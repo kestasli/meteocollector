@@ -105,12 +105,14 @@ try:
     #    outfile.write(stationData)
 
 except error.URLError as err:
-    print('Problem with VU URL')
+    print('ERROR: URL ' + url_vu)
     print(err)
 except json.JSONDecodeError as err:
+   print('ERROR: JSON ' + url_vu)
    print(err)
-except timeout:
-    print('Timeout')
+except timeout as err:
+    print('ERROR: Timeout ' + url_vu)
+    print(err)
     #logging.error('socket timed out - URL %s', url)
 
 publish.multiple(stationsList, hostname = mqtt_server, port = 8883, auth=user_pass, tls={'ca_certs': scriptdir + 'root-CA.crt'})
