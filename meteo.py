@@ -4,6 +4,7 @@ from decouple import config
 import json
 import os
 from urllib import request, error
+from socket import timeout
 from datetime import datetime
 import paho.mqtt.client as paho
 import paho.mqtt.publish as publish
@@ -35,6 +36,7 @@ def unifyID(name):
         return name
 
 def fmtMessage(topic, content):
+   #This will create message with multiple topicks and messages to be published in one shot.
    msg = {'topic': topic, 'payload': content, 'qos': 0, 'retain': False}
    return msg
 
@@ -86,7 +88,7 @@ except json.JSONDecodeError as err:
 try:
     req = request.Request(url_vu)
     req.add_header('Referer', 'https://www.hkk.gf.vu.lt/vu_ms/') #does not respond if header is not specified
-    session = request.urlopen(req)
+    session = request.urlopen(req, timeout = 5)
     data = str(session.read().decode(encoding='UTF-8'))
     session.close()
 
@@ -103,17 +105,19 @@ try:
     #    outfile.write(stationData)
 
 except error.URLError as err:
+    print('Problem with VU URL')
     print(err)
 except json.JSONDecodeError as err:
    print(err)
+except timeout:
+    print('Timeout')
+    #logging.error('socket timed out - URL %s', url)
 
 publish.multiple(stationsList, hostname = mqtt_server, port = 8883, auth=user_pass, tls={'ca_certs': scriptdir + 'root-CA.crt'})
 
-#pp.pprint(stationsList)
+#-----------------------------------------------------------------------
 
 for station in stationsList:
    print(station['payload'])
-
 print(len(stationsList))
-
 print("--- %s seconds ---" % (time.time() - start_time))
