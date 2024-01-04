@@ -80,15 +80,20 @@ try:
       #with open('stationdata/' + i['id'] + '.json', "w") as outfile:
       #    outfile.write(stationData)
 except error.URLError as err:
+    print('ERROR: URL ' + url_vu)
     print(err)
 except json.JSONDecodeError as err:
+   print('ERROR: JSON ' + url_vu)
    print(err)
+except timeout as err:
+    print('ERROR: Timeout ' + url_vu)
+    print(err)
 
 #--------------------------------VU data--------------------------------
 try:
     req = request.Request(url_vu)
     req.add_header('Referer', 'https://www.hkk.gf.vu.lt/vu_ms/') #does not respond if header is not specified
-    session = request.urlopen(req, timeout = 5)
+    session = request.urlopen(req, timeout = 3)
     data = str(session.read().decode(encoding='UTF-8'))
     session.close()
 
@@ -120,6 +125,9 @@ publish.multiple(stationsList, hostname = mqtt_server, port = 8883, auth=user_pa
 #-----------------------------------------------------------------------
 
 for station in stationsList:
+   #print(station['topic'])
    print(station['payload'])
+#pp.pprint(stationsList[0])
+
 print(len(stationsList))
 print("--- %s seconds ---" % (time.time() - start_time))
