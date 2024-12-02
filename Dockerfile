@@ -1,6 +1,4 @@
-FROM python:3.11-slim
-#FROM python:3.11
-# Or any preferred Python version.
+FROM python:3.14-rc-slim-bookworm
 ADD root-CA.crt meteo.py .
 RUN pip install python-decouple paho-mqtt
 CMD ["python", "./meteo.py"]
