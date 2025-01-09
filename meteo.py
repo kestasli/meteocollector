@@ -66,7 +66,7 @@ def convertDirection(direction):
 try:
    req = request.Request(url_eismoinfo)
    #req.add_header('Referer', 'https://www.hkk.gf.vu.lt/vu_ms/')
-   session = request.urlopen(req)
+   session = request.urlopen(req, timeout = 3)
    data = str(session.read().decode(encoding='UTF-8'))
    session.close()
 
