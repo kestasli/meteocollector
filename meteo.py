@@ -91,6 +91,9 @@ except timeout as err:
 
 #--------------------------------VU data--------------------------------
 try:
+    formattedID = unifyID('0')
+    collTime = datetime.now().strftime('%Y-%m-%d %H:%M') #Collection time is not supplied by the station, injecting now() time as collection time. Should be aligned with UTC?
+
     req = request.Request(url_vu)
     req.add_header('Referer', 'https://www.hkk.gf.vu.lt/vu_ms/') #does not respond if header is not specified
     session = request.urlopen(req, timeout = 3)
@@ -100,9 +103,6 @@ try:
     data = data[4:-3] #remove crap from inproperly formated JSON response
     js_data_vu = json.loads(data)
 
-    formattedID = unifyID('0')
-    collTime = datetime.now().strftime('%Y-%m-%d %H:%M') #Collection time is not supplied by the station, injecting now() time as collection time. Should be aligned with UTC?
-
     stationData = formatMQData(js_data_vu['zeno_AT_5s_C'], js_data_vu['zeno_Spd_5s_Kt'], int(js_data_vu['zeno_Dir_5s']), formattedID, 'VU Meteo Stotis', collTime)
     stationsList.append(fmtMessage(root_topic + '/' + formattedID, stationData))
 
@@ -111,6 +111,8 @@ try:
 
 except Exception as err:
    print("ERROR: ", type(err).__name__)
+   stationData = formatMQData(None, None, None, formattedID, 'VU Meteo Stotis', collTime)
+   stationsList.append(fmtMessage(root_topic + '/' + formattedID, stationData))
 
 '''
 except error.URLError as err:
