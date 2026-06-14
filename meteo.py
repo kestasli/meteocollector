@@ -4,6 +4,7 @@ from decouple import config
 import json
 import os
 from urllib import request, error
+
 from socket import timeout
 from datetime import datetime
 import paho.mqtt.client as paho
@@ -24,6 +25,7 @@ publishTopics = ['0000', '0310', '1187', '5351']
 url_eismoinfo = 'https://eismoinfo.lt/weather-conditions-service'
 url_vu = 'http://www.hkk.gf.vu.lt/ms_json.php'
 stationsList = [] #stations data to be published in MQTT
+headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
 
 def unifyID(name):
     #Set station ID to uniform format of 4 symbols
@@ -64,8 +66,7 @@ def convertDirection(direction):
 
 #--------------------------------KD data--------------------------------
 try:
-   req = request.Request(url_eismoinfo)
-   #req.add_header('Referer', 'https://www.hkk.gf.vu.lt/vu_ms/')
+   req = request.Request(url_eismoinfo, headers=headers)
    session = request.urlopen(req, timeout = 3)
    data = str(session.read().decode(encoding='UTF-8'))
    session.close()
@@ -79,55 +80,29 @@ try:
       stationsList.append(fmtMessage(root_topic + '/' + formattedID, stationData))
       #with open('stationdata/' + i['id'] + '.json', "w") as outfile:
       #    outfile.write(stationData)
+
+except urllib.error.HTTPError as e:
+    print(f"--- HTTP Error Captured ---")
+    print(f"Status Code: {e.code}")
+    print(f"Reason: {e.reason}")
+    print(f"\n--- Response Headers ---")
+    print(e.headers)
+    print(f"--- Response Body ---")
+    # Decode the body to read the server's specific error message
+    print(e.read().decode('utf-8', errors='replace')) 
+
+except urllib.error.URLError as e:
+    print(f"Failed to reach the server: {e.reason}")
+
 except error.URLError as err:
-    print('ERROR: URL ' + url_vu)
+    print('ERROR: URL ' + url_eismoinfo)
     print(err)
 except json.JSONDecodeError as err:
-   print('ERROR: JSON ' + url_vu)
+   print('ERROR: JSON ' + url_eismoinfo)
    print(err)
 except timeout as err:
-    print('ERROR: Timeout ' + url_vu)
+    print('ERROR: Timeout ' + url_eismoinfo)
     print(err)
-
-#--------------------------------VU data--------------------------------
-try:
-    formattedID = unifyID('0')
-    collTime = datetime.now().strftime('%Y-%m-%d %H:%M') #Collection time is not supplied by the station, injecting now() time as collection time. Should be aligned with UTC?
-
-    req = request.Request(url_vu)
-    req.add_header('Referer', 'https://www.hkk.gf.vu.lt/vu_ms/') #does not respond if header is not specified
-    session = request.urlopen(req, timeout = 3)
-    data = str(session.read().decode(encoding='UTF-8'))
-    session.close()
-
-    data = data[4:-3] #remove crap from inproperly formated JSON response
-    js_data_vu = json.loads(data)
-
-    stationData = formatMQData(js_data_vu['zeno_AT_5s_C'], js_data_vu['zeno_Spd_5s_Kt'], int(js_data_vu['zeno_Dir_5s']), formattedID, 'VU Meteo Stotis', collTime)
-    stationsList.append(fmtMessage(root_topic + '/' + formattedID, stationData))
-
-    #with open('stationdata/' + '0' + '.json', "w") as outfile:
-    #    outfile.write(stationData)
-
-except Exception as err:
-   print("ERROR: ", type(err).__name__)
-   stationData = formatMQData(None, None, None, formattedID, 'VU Meteo Stotis', collTime)
-   stationsList.append(fmtMessage(root_topic + '/' + formattedID, stationData))
-
-'''
-except error.URLError as err:
-    print('ERROR: URL ' + url_vu)
-    print(err)
-except json.JSONDecodeError as err:
-   print('ERROR: JSON ' + url_vu)
-   print(err)
-except timeout as err:
-    print('ERROR: Timeout ' + url_vu)
-    print(err)
-    #logging.error('socket timed out - URL %s', url)
-'''
-
-publish.multiple(stationsList, hostname = mqtt_server, port = 8883, auth=user_pass, tls={'ca_certs': scriptdir + 'root-CA.crt'})
 
 #-----------------------------------------------------------------------
 
@@ -138,3 +113,5 @@ for station in stationsList:
 
 print(len(stationsList))
 print("--- %s seconds ---" % (time.time() - start_time))
+
+publish.multiple(stationsList, hostname = mqtt_server, port = 8883, auth=user_pass, tls={'ca_certs': scriptdir + 'root-CA.crt'})
